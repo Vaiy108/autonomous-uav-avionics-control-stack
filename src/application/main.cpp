@@ -185,7 +185,7 @@ int main()
                 sensor_manager.latestMagnetometer();
 
             std::cout
-                << "\nSENSOR MANAGER SYNCHRONIZED SENSOR OUTPUT\n"
+                << "\nSENSOR MANAGER SYNCHRONIZED SENSOR STATE\n"
                 << "  IMU timestamp:  "
                 << latest_imu.timestamp_us << " us\n"
                 << "  GNSS timestamp: "

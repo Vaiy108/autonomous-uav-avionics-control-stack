@@ -6,7 +6,7 @@ The project is designed as a portable, hardware-independent embedded avionics so
 
 ## Project Objectives
 
-- Develop modular drivers for IMU, GNSS, barometer, and air-data sensors.
+- Develop modular drivers for IMU, GNSS, barometer, and magnetometer sensors.
 - Decouple flight applications from hardware-specific sensor implementations.
 - Implement lightweight publish-subscribe middleware.
 - Detect stale, invalid, and unavailable sensor measurements.
@@ -16,18 +16,38 @@ The project is designed as a portable, hardware-independent embedded avionics so
 
 ## Current Development Phase
 
-Phase 1 focuses on a portable Windows-compatible C++ implementation using
-simulated avionics sensors and software-in-the-loop tests.
+The project currently implements a portable software-in-the-loop (SIL)
+embedded avionics software stack in modern C++17.
 
-Phase 2 will add PX4 SITL, uORB adapters, and NuttX-target validation on Ubuntu.
+Completed components include:
+
+- Modular simulated sensor drivers
+- Publish–Subscribe middleware
+- Multi-sensor synchronization through a Sensor Manager
+- Hardware-independent software architecture
+- CMake build system
+- Windows SIL validation
+
+The next development phase will introduce:
+
+- Sensor Health Monitoring
+- Platform abstraction (STM32, Linux, QNX)
+- PX4/uORB adapters
+- NuttX validation on Ubuntu
+- Real GNSS hardware integration
 
 ---
 
-## Planned Sensors
-- IMU
-- GNSS
-- Barometer
-- Air-data sensor
+## Implemented Sensors
+
+- ✅ IMU (100 Hz)
+- ✅ Magnetometer (50 Hz)
+- ✅ Barometer (25 Hz)
+- ✅ GNSS (10 Hz)
+
+Future:
+
+- ⬜ Air-data sensor
 
 ---
 
@@ -40,7 +60,7 @@ subgraph Sensors
 IMU
 GNSS
 Barometer
-AirData
+Magnetometer
 end
 
 subgraph Drivers
@@ -50,6 +70,9 @@ end
 subgraph Middleware
 MessageBus
 SensorManager
+end
+
+subgraph Services
 HealthMonitor
 TimeSynchronization
 end
@@ -63,11 +86,12 @@ end
 Sensors --> SensorDrivers
 SensorDrivers --> MessageBus
 MessageBus --> SensorManager
-SensorManager --> TimeSynchronization
-SensorManager --> HealthMonitor
 
-TimeSynchronization --> Navigation
+SensorManager --> HealthMonitor
+SensorManager --> TimeSynchronization
+
 HealthMonitor --> Navigation
+TimeSynchronization --> Navigation
 
 Navigation --> FlightController
 FlightController --> Telemetry
@@ -87,22 +111,115 @@ The first sensor driver has been implemented using a hardware-independent driver
 
 ### Publish–Subscribe Middleware
 
-The simulated IMU driver now publishes timestamped sensor samples through a lightweight publish–subscribe message bus. Subscribers receive sensor data without depending directly on the driver implementation, enabling future platform backends for PX4/uORB, STM32 RTOS queues, and QNX message passing.
+The embedded middleware implements a lightweight publish–subscribe architecture that decouples sensor drivers from higher-level avionics applications. Each sensor publishes timestamped measurements at its own sampling frequency, allowing multiple independent subscribers such as the Sensor Manager, telemetry modules, logging, and future navigation algorithms.
 
-<p align="center">
-  <img src="docs/images/middleware_imu_demo.png"
-       alt="IMU samples published through the avionics middleware"
-       width="900">
+Implemented publishing rates:
+
+IMU — 100 Hz
+Magnetometer — 50 Hz
+Barometer — 25 Hz
+GNSS — 10 Hz
+
+
+<p align="center"> 
+<img src="docs/images/middleware_output.png"  
+     alt="IMU samples published through the avionics middleware"
+     width="950">
 </p>
 
 ---
 
-## Technologies
-- C++17
-- CMake
-- Unit and integration testing
-- GitHub Actions
-- PX4/uORB integration planned
-- NuttX validation planned
+### Sensor Manager
+
+The Sensor Manager subscribes to all middleware topics and maintains the latest valid measurement from each sensor. It provides a synchronized system-wide sensor state that can later be consumed by navigation, flight-control, and health-monitoring modules.
+
+Current responsibilities include:
+
+- Latest valid sample management
+- Multi-sensor synchronization
+- Timestamp consistency
+- Centralized sensor access
+- Hardware-independent interface
+
+Future extensions:
+
+- Sensor health monitoring
+- Stale-data detection
+- Timestamp validation
+- Fault injection
+- Navigation interface
+
+<p align="center"> 
+<img src="docs/images/sensor_manager_demo.png" 
+	 alt="Sensor manager showing synchronized sensor state"
+	 width="750"> 
+</p>
 
 ---
+
+## Project Status
+
+### Completed
+
+- ✅ Modular C++17 project architecture
+- ✅ CMake build system
+- ✅ Hardware-independent sensor interfaces
+- ✅ Simulated IMU Driver (100 Hz)
+- ✅ Simulated Magnetometer Driver (50 Hz)
+- ✅ Simulated Barometer Driver (25 Hz)
+- ✅ Simulated GNSS Driver (10 Hz)
+- ✅ Publish–Subscribe Middleware
+- ✅ Multi-sensor Sensor Manager
+- ✅ Software-in-the-loop (SIL) validation
+
+### In Progress
+
+- Sensor Health Monitoring
+- Platform Abstraction Layer
+
+### Planned
+
+- ⬜ STM32 HAL platform
+- ⬜ Linux/POSIX platform
+- ⬜ QNX platform
+- ⬜ PX4/uORB adapter
+- ⬜ NuttX integration
+- ⬜ Real GNSS hardware driver
+- ⬜ Air-data sensor
+
+---
+
+
+## Technologies
+
+- C++17
+- CMake
+- Publish–Subscribe Middleware
+- Software-in-the-loop (SIL)
+- Modular Sensor Drivers
+- Git
+- GitHub Actions (planned)
+- PX4/uORB (planned)
+- NuttX (planned)
+- STM32 HAL (planned)
+- Linux/POSIX (planned)
+- QNX (planned)
+
+---
+
+## 👤 Author
+
+**Vasan Iyer**  
+GNC / Embedded Systems Engineer  
+
+Focus areas:
+ 
+- Embedded systems (C++, Python) 
+- GNC
+- Flight dynamics & control  
+- Sensor fusion & state estimation  
+- Autonomous systems  
+- UAV systems 
+
+
+GitHub: https://github.com/Vaiy108
