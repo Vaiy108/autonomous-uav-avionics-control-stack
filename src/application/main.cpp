@@ -4,6 +4,7 @@
 #include "avionics/drivers/SimulatedBarometerDriver.hpp"
 #include "avionics/drivers/SimulatedMagnetometerDriver.hpp"
 #include "avionics/middleware/SensorManager.hpp"
+#include "avionics/services/SensorHealthMonitor.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -18,6 +19,8 @@ int main()
     avionics::middleware::SensorManager sensor_manager{message_bus};
 
     sensor_manager.start();
+
+    avionics::services::SensorHealthMonitor health_monitor{sensor_manager};
     
 
 
@@ -173,6 +176,7 @@ int main()
                 message_bus.publish(gnss_sample);
             }
         }
+        // Sensor Manager
         if (sensor_manager.allSensorsAvailable())
         {
             const auto& latest_imu =
@@ -206,9 +210,54 @@ int main()
         }
         else
         {
+            
             std::cout
                 << "\nSensor Manager is waiting for all sensors.\n";
         }
+
+        // Health Monitor
+
+        const auto current_time_us =
+            sensor_manager.latestImu().timestamp_us;
+
+        const auto system_health =
+            health_monitor.evaluate(current_time_us);
+
+        std::cout
+            << "\nSENSOR HEALTH MONITOR\n"
+            << "  IMU:  "
+            << avionics::services::SensorHealthMonitor::toString(
+                   system_health.imu.state)
+            << " | age = "
+            << system_health.imu.sample_age_us
+            << " us\n"
+
+            << "  GNSS: "
+            << avionics::services::SensorHealthMonitor::toString(
+                   system_health.gnss.state)
+            << " | age = "
+            << system_health.gnss.sample_age_us
+            << " us\n"
+
+            << "  BARO: "
+            << avionics::services::SensorHealthMonitor::toString(
+                   system_health.barometer.state)
+            << " | age = "
+            << system_health.barometer.sample_age_us
+            << " us\n"
+
+            << "  MAG:  "
+            << avionics::services::SensorHealthMonitor::toString(
+                   system_health.magnetometer.state)
+            << " | age = "
+            << system_health.magnetometer.sample_age_us
+            << " us\n"
+
+            << "  Overall system health: "
+            << (system_health.allHealthy()
+                    ? "HEALTHY"
+                    : "DEGRADED")
+            << '\n';
 
         std::cout << '\n';
     }

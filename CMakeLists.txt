@@ -20,6 +20,7 @@ add_executable(
     src/drivers/magnetometer/SimulatedMagnetometerDriver.cpp
     src/middleware/message_bus/LocalMessageBus.cpp
     src/middleware/sensor_manager/SensorManager.cpp
+    src/services/health_monitor/SensorHealthMonitor.cpp
 )
 
 target_include_directories(
