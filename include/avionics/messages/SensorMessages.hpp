@@ -48,4 +48,14 @@ struct BarometerSample
     bool valid{false};
 };
 
+struct MagnetometerSample
+{
+    TimestampUs timestamp_us{};
+
+    Vector3f magnetic_field_ut{};
+
+    bool valid{false};
+};
+
+
 }  // namespace avionics::messages

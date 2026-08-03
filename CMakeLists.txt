@@ -17,6 +17,7 @@ add_executable(
     src/drivers/imu/SimulatedImuDriver.cpp
     src/drivers/gnss/SimulatedGnssDriver.cpp
     src/drivers/barometer/SimulatedBarometerDriver.cpp
+    src/drivers/magnetometer/SimulatedMagnetometerDriver.cpp
     src/middleware/message_bus/LocalMessageBus.cpp
 )
 

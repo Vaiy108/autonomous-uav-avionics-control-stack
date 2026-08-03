@@ -2,6 +2,7 @@
 #include "avionics/drivers/SimulatedImuDriver.hpp"
 #include "avionics/middleware/LocalMessageBus.hpp"
 #include "avionics/drivers/SimulatedBarometerDriver.hpp"
+#include "avionics/drivers/SimulatedMagnetometerDriver.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -12,6 +13,7 @@ int main()
     avionics::drivers::SimulatedGnssDriver gnss{};
     avionics::drivers::SimulatedBarometerDriver barometer{};
     avionics::middleware::LocalMessageBus message_bus{};
+    avionics::drivers::SimulatedMagnetometerDriver magnetometer{};
 
 
     message_bus.subscribeImu(
@@ -60,6 +62,20 @@ int main()
             << "| altitude = " << sample.altitude_m << " m\n";
     });
 
+    message_bus.subscribeMagnetometer(
+    [](const avionics::messages::MagnetometerSample& sample)
+    {
+        std::cout
+            << std::fixed
+            << std::setprecision(2)
+            << "MAG  "
+            << "| t = " << sample.timestamp_us << " us "
+            << "| field = ("
+            << sample.magnetic_field_ut.x << ", "
+            << sample.magnetic_field_ut.y << ", "
+            << sample.magnetic_field_ut.z << ") uT\n";
+    });
+
     std::cout << "Embedded Avionics Software Stack\n\n";
 
     if (!imu.initialize() || !imu.selfTest())
@@ -77,6 +93,13 @@ int main()
     if (!barometer.initialize() || !barometer.selfTest())
     {
         std::cerr << "Barometer initialization or self-test failed.\n";
+        return 1;
+    }
+
+    if (!magnetometer.initialize() || !magnetometer.selfTest())
+    {
+        std::cerr
+            << "Magnetometer initialization or self-test failed.\n";
         return 1;
     }
 
@@ -102,13 +125,30 @@ int main()
 
             message_bus.publish(imu_sample);
 
+            if (step % 2 == 0)
+            {
+                const auto magnetometer_sample =
+                    magnetometer.read();
+
+                if (!magnetometer_sample.valid)
+                {
+                    std::cerr
+                        << "Invalid magnetometer sample.\n";
+                    return 1;
+                }
+
+                message_bus.publish(magnetometer_sample);
+            }
+
             if (step % 4 == 0)
             {
-                const auto barometer_sample = barometer.read();
+                const auto barometer_sample =
+                    barometer.read();
 
                 if (!barometer_sample.valid)
                 {
-                    std::cerr << "Invalid barometer sample.\n";
+                    std::cerr
+                        << "Invalid barometer sample.\n";
                     return 1;
                 }
 
@@ -131,6 +171,7 @@ int main()
 
         std::cout << '\n';
     }
+    
 
     return 0;
 }

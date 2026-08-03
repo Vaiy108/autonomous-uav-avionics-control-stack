@@ -16,6 +16,9 @@ using GnssCallback =
 using BarometerCallback =
     std::function<void(const messages::BarometerSample&)>;
 
+using MagnetometerCallback =
+    std::function<void(const messages::MagnetometerSample&)>;
+
 class IMessageBus
 {
 public:
@@ -23,8 +26,8 @@ public:
 
     virtual void subscribeImu(ImuCallback callback) = 0;
     virtual void subscribeGnss(GnssCallback callback) = 0;
-    virtual void subscribeBarometer(
-        BarometerCallback callback) = 0;
+    virtual void subscribeBarometer(BarometerCallback callback) = 0;
+    virtual void subscribeMagnetometer(MagnetometerCallback callback) = 0;
 
     virtual void publish(
         const messages::ImuSample& sample) = 0;
@@ -34,6 +37,9 @@ public:
 
     virtual void publish(
         const messages::BarometerSample& sample) = 0;
+
+    virtual void publish(
+        const messages::MagnetometerSample& sample) = 0;
 };
 
 }  // namespace avionics::middleware
