@@ -1,8 +1,9 @@
 # Embedded Avionics Sensor Platform
 
-A portable C++ avionics software platform demonstrating sensor-driver abstraction, publish-subscribe middleware, sensor health monitoring, time synchronization, fault injection, and software-in-the-loop (SIL) validation.
+A portable C++ avionics software platform demonstrating sensor-driver abstraction, publish-subscribe middleware, sensor health monitoring, time synchronization, fault injection, and software-in-the-loop (SIL) validation. The project emphasizes modular avionics software architecture, multi-rate sensor acquisition, centralized sensor management, and fault detection using software-in-the-loop (SIL) simulation.
 
 The project is designed as a portable, hardware-independent embedded avionics software stack. The architecture is intentionally structured to enable future integration with PX4, uORB, and NuttX.
+
 
 ## Project Objectives
 
@@ -157,34 +158,96 @@ Future extensions:
 
 ---
 
+## Sensor Health Monitoring
+
+The Sensor Health Monitor continuously evaluates the operational status of each sensor using timestamp-based freshness checks and sensor availability information provided by the Sensor Manager.
+
+Current monitoring capabilities include:
+
+- Latest sensor sample validation
+- Timestamp consistency monitoring
+- Stale-data detection
+- System-wide health assessment
+- Automatic recovery after sensor restoration
+
+Each sensor is evaluated independently and classified as:
+
+- **HEALTHY** – Sensor data is valid and updated within the expected interval.
+- **STALE** – Sensor data has not been updated within the configured timeout.
+- **UNAVAILABLE** – No valid sensor data has been received.
+
+The overall system health is derived from the health state of all monitored sensors.
+
+### GNSS Fault Injection Demonstration
+
+To validate the health monitoring framework, a GNSS communication dropout is intentionally injected into the software-in-the-loop simulation.
+
+The Health Monitor detects that the GNSS measurements have exceeded the configured freshness threshold and reports a **STALE** sensor while the remaining sensors continue operating normally. Consequently, the overall system health transitions to **DEGRADED**.
+
+Once GNSS measurements resume, the Sensor Manager immediately updates the latest synchronized sensor state and the Health Monitor automatically restores the system status to **HEALTHY** without requiring any manual intervention.
+
+This demonstrates the complete fault lifecycle:
+
+```
+Normal Operation
+        ↓
+GNSS Communication Dropout
+        ↓
+STALE Sensor Detection
+        ↓
+Overall System DEGRADED
+        ↓
+GNSS Recovery
+        ↓
+Automatic System Recovery
+```
+
+### Fault Detection
+
+<p align="center">
+<img src="docs/images/health_monitor_degraded.png" width="750">
+</p>
+
+### Automatic Recovery
+
+<p align="center">
+<img src="docs/images/health_monitor_recovery.png" width="750">
+</p>
+
+---
+
 ## Project Status
 
 ### Completed
 
 - ✅ Modular C++17 project architecture
-- ✅ CMake build system
-- ✅ Hardware-independent sensor interfaces
 - ✅ Simulated IMU Driver (100 Hz)
 - ✅ Simulated Magnetometer Driver (50 Hz)
 - ✅ Simulated Barometer Driver (25 Hz)
 - ✅ Simulated GNSS Driver (10 Hz)
 - ✅ Publish–Subscribe Middleware
-- ✅ Multi-sensor Sensor Manager
-- ✅ Software-in-the-loop (SIL) validation
+- ✅ Multi-Sensor Manager
+- ✅ Sensor Health Monitor
+- ✅ Stale Sensor Detection
+- ✅ Fault Injection & Automatic Recovery
+- ✅ Software-in-the-Loop (SIL) Validation
 
 ### In Progress
 
-- Sensor Health Monitoring
 - Platform Abstraction Layer
+- Hardware Communication Interfaces
 
 ### Planned
 
+- ⬜ UART abstraction
+- ⬜ SPI abstraction
+- ⬜ I²C abstraction
 - ⬜ STM32 HAL platform
 - ⬜ Linux/POSIX platform
 - ⬜ QNX platform
-- ⬜ PX4/uORB adapter
-- ⬜ NuttX integration
-- ⬜ Real GNSS hardware driver
+- ⬜ PX4/uORB integration
+- ⬜ NuttX support
+- ⬜ Real GNSS (NEO-M8N) driver
 - ⬜ Air-data sensor
 
 ---

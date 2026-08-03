@@ -119,8 +119,22 @@ int main()
      * For this compact demonstration, publish ten IMU samples
      * for every one GNSS sample.
      */
-    for (int cycle = 0; cycle < 3; ++cycle)
+    for (int cycle = 0; cycle < 6; ++cycle)
     {
+        const bool gnss_dropout_active =
+            cycle >= 1 && cycle <= 3;
+
+        if (cycle == 1)
+        {
+            std::cout
+                << "\n*** FAULT INJECTION: GNSS DATA DROPOUT ACTIVE ***\n";
+        }
+        else if (cycle == 4)
+        {
+            std::cout
+                << "\n*** RECOVERY: GNSS DATA STREAM RESTORED ***\n";
+        }
+
         for (int step = 1; step <= 20; ++step)
         {
             const auto imu_sample = imu.read();
@@ -163,9 +177,9 @@ int main()
                 message_bus.publish(barometer_sample);
             }
 
-            if (step % 10 == 0)
+            if (step % 10 == 0 && !gnss_dropout_active)
             {
-                const auto gnss_sample = gnss.read();
+                const auto gnss_sample = gnss.read(imu_sample.timestamp_us);
 
                 if (!gnss_sample.valid)
                 {
@@ -219,6 +233,14 @@ int main()
 
         const auto current_time_us =
             sensor_manager.latestImu().timestamp_us;
+
+        std::cout
+            << "\nDEBUG\n"
+            << "Current IMU time : " << current_time_us << " us\n"
+            << "Latest GNSS time : " << sensor_manager.latestGnss().timestamp_us << " us\n"
+            << "GNSS age         : "
+            << current_time_us - sensor_manager.latestGnss().timestamp_us
+            << " us\n";
 
         const auto system_health =
             health_monitor.evaluate(current_time_us);

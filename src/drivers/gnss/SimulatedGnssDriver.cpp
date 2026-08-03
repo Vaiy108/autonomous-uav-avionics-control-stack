@@ -5,7 +5,6 @@ namespace avionics::drivers
 
 bool SimulatedGnssDriver::initialize()
 {
-    timestamp_us_ = 0;
     status_ = SensorStatus::ready;
 
     return true;
@@ -26,7 +25,7 @@ std::string_view SimulatedGnssDriver::name() const
     return "Simulated GNSS";
 }
 
-messages::GnssSample SimulatedGnssDriver::read()
+messages::GnssSample SimulatedGnssDriver::read(const messages::TimestampUs timestamp_us)
 {
     if (status_ != SensorStatus::ready)
     {
@@ -37,7 +36,6 @@ messages::GnssSample SimulatedGnssDriver::read()
      * GNSS output rate: 10 Hz
      * 100,000 microseconds = 100 milliseconds.
      */
-    timestamp_us_ += 100'000;
 
     /*
      * Simulate slow motion by incrementing the coordinates slightly
@@ -48,7 +46,7 @@ messages::GnssSample SimulatedGnssDriver::read()
     altitude_m_ += 0.01F;
 
     messages::GnssSample sample{};
-    sample.timestamp_us = timestamp_us_;
+    sample.timestamp_us = timestamp_us;
 
     sample.latitude_deg = latitude_deg_;
     sample.longitude_deg = longitude_deg_;
