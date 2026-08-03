@@ -1,6 +1,7 @@
 #include "avionics/drivers/SimulatedGnssDriver.hpp"
 #include "avionics/drivers/SimulatedImuDriver.hpp"
 #include "avionics/middleware/LocalMessageBus.hpp"
+#include "avionics/drivers/SimulatedBarometerDriver.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -9,7 +10,9 @@ int main()
 {
     avionics::drivers::SimulatedImuDriver imu{};
     avionics::drivers::SimulatedGnssDriver gnss{};
+    avionics::drivers::SimulatedBarometerDriver barometer{};
     avionics::middleware::LocalMessageBus message_bus{};
+
 
     message_bus.subscribeImu(
         [](const avionics::messages::ImuSample& sample)
@@ -44,6 +47,19 @@ int main()
                 << "| speed = " << sample.ground_speed_mps << " m/s\n";
         });
 
+    message_bus.subscribeBarometer(
+    [](const avionics::messages::BarometerSample& sample)
+    {
+        std::cout
+            << std::fixed
+            << std::setprecision(2)
+            << "BARO "
+            << "| t = " << sample.timestamp_us << " us "
+            << "| pressure = " << sample.pressure_pa << " Pa "
+            << "| temperature = " << sample.temperature_c << " C "
+            << "| altitude = " << sample.altitude_m << " m\n";
+    });
+
     std::cout << "Embedded Avionics Software Stack\n\n";
 
     if (!imu.initialize() || !imu.selfTest())
@@ -58,6 +74,12 @@ int main()
         return 1;
     }
 
+    if (!barometer.initialize() || !barometer.selfTest())
+    {
+        std::cerr << "Barometer initialization or self-test failed.\n";
+        return 1;
+    }
+
     std::cout
         << "Publishing IMU and GNSS samples through middleware:\n\n";
 
@@ -66,9 +88,9 @@ int main()
      * For this compact demonstration, publish ten IMU samples
      * for every one GNSS sample.
      */
-    for (int cycle = 0; cycle < 5; ++cycle)
+    for (int cycle = 0; cycle < 3; ++cycle)
     {
-        for (int imu_index = 0; imu_index < 10; ++imu_index)
+        for (int step = 1; step <= 20; ++step)
         {
             const auto imu_sample = imu.read();
 
@@ -79,17 +101,33 @@ int main()
             }
 
             message_bus.publish(imu_sample);
+
+            if (step % 4 == 0)
+            {
+                const auto barometer_sample = barometer.read();
+
+                if (!barometer_sample.valid)
+                {
+                    std::cerr << "Invalid barometer sample.\n";
+                    return 1;
+                }
+
+                message_bus.publish(barometer_sample);
+            }
+
+            if (step % 10 == 0)
+            {
+                const auto gnss_sample = gnss.read();
+
+                if (!gnss_sample.valid)
+                {
+                    std::cerr << "Invalid GNSS sample.\n";
+                    return 1;
+                }
+
+                message_bus.publish(gnss_sample);
+            }
         }
-
-        const auto gnss_sample = gnss.read();
-
-        if (!gnss_sample.valid)
-        {
-            std::cerr << "Invalid GNSS sample.\n";
-            return 1;
-        }
-
-        message_bus.publish(gnss_sample);
 
         std::cout << '\n';
     }
