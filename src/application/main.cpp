@@ -1,3 +1,4 @@
+#include "avionics/drivers/SimulatedGnssDriver.hpp"
 #include "avionics/drivers/SimulatedImuDriver.hpp"
 #include "avionics/middleware/LocalMessageBus.hpp"
 
@@ -7,6 +8,7 @@
 int main()
 {
     avionics::drivers::SimulatedImuDriver imu{};
+    avionics::drivers::SimulatedGnssDriver gnss{};
     avionics::middleware::LocalMessageBus message_bus{};
 
     message_bus.subscribeImu(
@@ -15,53 +17,81 @@ int main()
             std::cout
                 << std::fixed
                 << std::setprecision(3)
-                << "IMU message"
-                << " | t = "
-                << sample.timestamp_us
-                << " us"
-                << " | accel = ("
-                << sample.acceleration_mps2.x
-                << ", "
-                << sample.acceleration_mps2.y
-                << ", "
-                << sample.acceleration_mps2.z
-                << ") m/s^2"
-                << " | gyro = ("
-                << sample.angular_velocity_rps.x
-                << ", "
-                << sample.angular_velocity_rps.y
-                << ", "
-                << sample.angular_velocity_rps.z
-                << ") rad/s\n";
+                << "IMU  "
+                << "| t = " << sample.timestamp_us << " us "
+                << "| accel = ("
+                << sample.acceleration_mps2.x << ", "
+                << sample.acceleration_mps2.y << ", "
+                << sample.acceleration_mps2.z << ") m/s^2 "
+                << "| gyro = ("
+                << sample.angular_velocity_rps.x << ", "
+                << sample.angular_velocity_rps.y << ", "
+                << sample.angular_velocity_rps.z << ") rad/s\n";
         });
 
-    std::cout
-        << "Embedded Avionics Software Stack\n";
+    message_bus.subscribeGnss(
+        [](const avionics::messages::GnssSample& sample)
+        {
+            std::cout
+                << std::fixed
+                << std::setprecision(6)
+                << "GNSS "
+                << "| t = " << sample.timestamp_us << " us "
+                << "| latitude = " << sample.latitude_deg << " deg "
+                << "| longitude = " << sample.longitude_deg << " deg "
+                << std::setprecision(2)
+                << "| altitude = " << sample.altitude_m << " m "
+                << "| speed = " << sample.ground_speed_mps << " m/s\n";
+        });
+
+    std::cout << "Embedded Avionics Software Stack\n\n";
 
     if (!imu.initialize() || !imu.selfTest())
     {
-        std::cerr
-            << "IMU initialization failed.\n";
+        std::cerr << "IMU initialization or self-test failed.\n";
+        return 1;
+    }
+
+    if (!gnss.initialize() || !gnss.selfTest())
+    {
+        std::cerr << "GNSS initialization or self-test failed.\n";
         return 1;
     }
 
     std::cout
-        << "Publishing IMU samples through middleware:\n\n";
+        << "Publishing IMU and GNSS samples through middleware:\n\n";
 
-    for (int sample_index = 0;
-         sample_index < 5;
-         ++sample_index)
+    /*
+     * The IMU runs at 100 Hz and GNSS at 10 Hz.
+     * For this compact demonstration, publish ten IMU samples
+     * for every one GNSS sample.
+     */
+    for (int cycle = 0; cycle < 5; ++cycle)
     {
-        const auto sample = imu.read();
-
-        if (!sample.valid)
+        for (int imu_index = 0; imu_index < 10; ++imu_index)
         {
-            std::cerr
-                << "Invalid IMU sample.\n";
+            const auto imu_sample = imu.read();
+
+            if (!imu_sample.valid)
+            {
+                std::cerr << "Invalid IMU sample.\n";
+                return 1;
+            }
+
+            message_bus.publish(imu_sample);
+        }
+
+        const auto gnss_sample = gnss.read();
+
+        if (!gnss_sample.valid)
+        {
+            std::cerr << "Invalid GNSS sample.\n";
             return 1;
         }
 
-        message_bus.publish(sample);
+        message_bus.publish(gnss_sample);
+
+        std::cout << '\n';
     }
 
     return 0;
