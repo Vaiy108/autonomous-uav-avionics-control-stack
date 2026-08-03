@@ -3,6 +3,7 @@
 #include "avionics/middleware/LocalMessageBus.hpp"
 #include "avionics/drivers/SimulatedBarometerDriver.hpp"
 #include "avionics/drivers/SimulatedMagnetometerDriver.hpp"
+#include "avionics/middleware/SensorManager.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -12,8 +13,12 @@ int main()
     avionics::drivers::SimulatedImuDriver imu{};
     avionics::drivers::SimulatedGnssDriver gnss{};
     avionics::drivers::SimulatedBarometerDriver barometer{};
-    avionics::middleware::LocalMessageBus message_bus{};
     avionics::drivers::SimulatedMagnetometerDriver magnetometer{};
+    avionics::middleware::LocalMessageBus message_bus{};
+    avionics::middleware::SensorManager sensor_manager{message_bus};
+
+    sensor_manager.start();
+    
 
 
     message_bus.subscribeImu(
@@ -104,7 +109,7 @@ int main()
     }
 
     std::cout
-        << "Publishing IMU and GNSS samples through middleware:\n\n";
+        << "Publishing sensors samples through middleware:\n\n";
 
     /*
      * The IMU runs at 100 Hz and GNSS at 10 Hz.
@@ -167,6 +172,42 @@ int main()
 
                 message_bus.publish(gnss_sample);
             }
+        }
+        if (sensor_manager.allSensorsAvailable())
+        {
+            const auto& latest_imu =
+                sensor_manager.latestImu();
+            const auto& latest_gnss =
+                sensor_manager.latestGnss();
+            const auto& latest_barometer =
+                sensor_manager.latestBarometer();
+            const auto& latest_magnetometer =
+                sensor_manager.latestMagnetometer();
+
+            std::cout
+                << "\nSENSOR MANAGER SYNCHRONIZED SENSOR OUTPUT\n"
+                << "  IMU timestamp:  "
+                << latest_imu.timestamp_us << " us\n"
+                << "  GNSS timestamp: "
+                << latest_gnss.timestamp_us << " us\n"
+                << "  BARO timestamp: "
+                << latest_barometer.timestamp_us << " us\n"
+                << "  MAG timestamp:  "
+                << latest_magnetometer.timestamp_us << " us\n"
+                << "  GNSS position:  "
+                << std::fixed
+                << std::setprecision(6)
+                << latest_gnss.latitude_deg << ", "
+                << latest_gnss.longitude_deg << "\n"
+                << std::setprecision(2)
+                << "  Barometric altitude: "
+                << latest_barometer.altitude_m << " m\n"
+                << "  All sensors available: YES\n";
+        }
+        else
+        {
+            std::cout
+                << "\nSensor Manager is waiting for all sensors.\n";
         }
 
         std::cout << '\n';

@@ -19,6 +19,7 @@ add_executable(
     src/drivers/barometer/SimulatedBarometerDriver.cpp
     src/drivers/magnetometer/SimulatedMagnetometerDriver.cpp
     src/middleware/message_bus/LocalMessageBus.cpp
+    src/middleware/sensor_manager/SensorManager.cpp
 )
 
 target_include_directories(
