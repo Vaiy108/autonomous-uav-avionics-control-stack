@@ -3,9 +3,17 @@
 namespace avionics::drivers
 {
 
+// Constructor
+SimulatedBarometerDriver::SimulatedBarometerDriver(
+    const platform::IClock& clock)
+    : clock_{clock}
+{
+}
+
 bool SimulatedBarometerDriver::initialize()
 {
     timestamp_us_ = 0;
+
     status_ = SensorStatus::ready;
 
     return true;
@@ -37,7 +45,7 @@ messages::BarometerSample SimulatedBarometerDriver::read()
      * Barometer output rate: 25 Hz
      * 40,000 microseconds = 40 milliseconds.
      */
-    timestamp_us_ += 40'000;
+   
 
     /*
      * Simulate a slow climb:
@@ -48,7 +56,9 @@ messages::BarometerSample SimulatedBarometerDriver::read()
     temperature_c_ += 0.001F;
 
     messages::BarometerSample sample{};
-    sample.timestamp_us = timestamp_us_;
+
+    sample.timestamp_us = clock_.nowUs();
+    
 
     sample.pressure_pa = pressure_pa_;
     sample.temperature_c = temperature_c_;

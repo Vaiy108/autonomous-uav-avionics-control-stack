@@ -2,6 +2,7 @@
 
 #include "avionics/drivers/ISensorDriver.hpp"
 #include "avionics/messages/SensorMessages.hpp"
+#include "avionics/platform/interfaces/IClock.hpp"
 
 namespace avionics::drivers
 {
@@ -9,6 +10,7 @@ namespace avionics::drivers
 class SimulatedMagnetometerDriver final : public ISensorDriver
 {
 public:
+    explicit SimulatedMagnetometerDriver(const platform::IClock& clock);
     bool initialize() override;
     bool selfTest() override;
 
@@ -18,8 +20,10 @@ public:
     [[nodiscard]] messages::MagnetometerSample read();
 
 private:
+    const platform::IClock& clock_;
+
     SensorStatus status_{SensorStatus::uninitialized};
-    messages::TimestampUs timestamp_us_{0};
+   
 
     float magnetic_x_ut_{21.0F};
     float magnetic_y_ut_{2.0F};

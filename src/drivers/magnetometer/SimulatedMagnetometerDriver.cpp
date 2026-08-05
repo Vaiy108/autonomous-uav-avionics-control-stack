@@ -3,6 +3,13 @@
 namespace avionics::drivers
 {
 
+// Constructor
+SimulatedMagnetometerDriver::SimulatedMagnetometerDriver(
+    const platform::IClock& clock)
+    : clock_{clock}
+{
+}
+
 bool SimulatedMagnetometerDriver::initialize()
 {
     timestamp_us_ = 0;
@@ -37,7 +44,7 @@ messages::MagnetometerSample SimulatedMagnetometerDriver::read()
      * Magnetometer output rate: 50 Hz
      * 20,000 microseconds = 20 milliseconds.
      */
-    timestamp_us_ += 20'000;
+    
 
     /*
      * Simulate a slow change in vehicle heading.
@@ -47,7 +54,8 @@ messages::MagnetometerSample SimulatedMagnetometerDriver::read()
     magnetic_z_ut_ -= 0.01F;
 
     messages::MagnetometerSample sample{};
-    sample.timestamp_us = timestamp_us_;
+    
+    sample.timestamp_us = clock_.nowUs();// shared Clock
 
     sample.magnetic_field_ut = {
         magnetic_x_ut_,

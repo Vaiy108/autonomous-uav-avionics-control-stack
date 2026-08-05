@@ -79,12 +79,21 @@ int main()
         << "\n\n";
 
     //Drivers
-    avionics::drivers::SimulatedImuDriver imu{};
+    // avionics::drivers::SimulatedImuDriver imu{};
+    // avionics::drivers::SimulatedGnssDriver gnss{simulation_clock};
+    // avionics::drivers::SimulatedBarometerDriver barometer{};
+    // avionics::drivers::SimulatedMagnetometerDriver magnetometer{};
+    
+    // Drivers with shared simulation clock IClock
+    avionics::drivers::SimulatedImuDriver imu{simulation_clock};
     avionics::drivers::SimulatedGnssDriver gnss{simulation_clock};
-    avionics::drivers::SimulatedBarometerDriver barometer{};
-    avionics::drivers::SimulatedMagnetometerDriver magnetometer{};
+    avionics::drivers::SimulatedBarometerDriver barometer{simulation_clock};
+    avionics::drivers::SimulatedMagnetometerDriver magnetometer{simulation_clock};
+
     avionics::middleware::LocalMessageBus message_bus{};
     avionics::middleware::SensorManager sensor_manager{message_bus};
+
+
 
     sensor_manager.start();
 

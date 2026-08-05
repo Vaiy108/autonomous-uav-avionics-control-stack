@@ -2,10 +2,15 @@
 
 namespace avionics::drivers
 {
+// Constructor
+SimulatedImuDriver::SimulatedImuDriver(
+    const platform::IClock& clock)
+    : clock_{clock}
+{
+}
 
 bool SimulatedImuDriver::initialize()
 {
-    timestamp_us_ = 0;
     status_ = SensorStatus::ready;
 
     return true;
@@ -33,10 +38,9 @@ messages::ImuSample SimulatedImuDriver::read()
         return {};
     }
 
-    timestamp_us_ += 10'000;
 
     messages::ImuSample sample{};
-    sample.timestamp_us = timestamp_us_;
+    sample.timestamp_us = clock_.nowUs();
 
     sample.acceleration_mps2 = {
         0.02F,
