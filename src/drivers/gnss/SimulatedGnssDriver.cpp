@@ -3,6 +3,13 @@
 namespace avionics::drivers
 {
 
+// Constructor
+SimulatedGnssDriver::SimulatedGnssDriver(
+    const platform::IClock& clock)
+    : clock_{clock}
+{
+}
+
 bool SimulatedGnssDriver::initialize()
 {
     status_ = SensorStatus::ready;
@@ -25,7 +32,7 @@ std::string_view SimulatedGnssDriver::name() const
     return "Simulated GNSS";
 }
 
-messages::GnssSample SimulatedGnssDriver::read(const messages::TimestampUs timestamp_us)
+messages::GnssSample SimulatedGnssDriver::read()
 {
     if (status_ != SensorStatus::ready)
     {
@@ -46,7 +53,7 @@ messages::GnssSample SimulatedGnssDriver::read(const messages::TimestampUs times
     altitude_m_ += 0.01F;
 
     messages::GnssSample sample{};
-    sample.timestamp_us = timestamp_us;
+    sample.timestamp_us = clock_.nowUs();
 
     sample.latitude_deg = latitude_deg_;
     sample.longitude_deg = longitude_deg_;

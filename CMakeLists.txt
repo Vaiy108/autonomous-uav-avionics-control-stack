@@ -21,6 +21,7 @@ add_executable(
     src/middleware/message_bus/LocalMessageBus.cpp
     src/middleware/sensor_manager/SensorManager.cpp
     src/services/health_monitor/SensorHealthMonitor.cpp
+    src/platform/windows/SimulationClock.cpp
 )
 
 target_include_directories(

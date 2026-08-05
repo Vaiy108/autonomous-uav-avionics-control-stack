@@ -5,14 +5,19 @@
 #include "avionics/drivers/SimulatedMagnetometerDriver.hpp"
 #include "avionics/middleware/SensorManager.hpp"
 #include "avionics/services/SensorHealthMonitor.hpp"
+#include "avionics/platform/SimulationClock.hpp"
 
 #include <iomanip>
 #include <iostream>
 
 int main()
 {
+    //Clock
+    avionics::platform::SimulationClock simulation_clock{};
+
+    //Drivers
     avionics::drivers::SimulatedImuDriver imu{};
-    avionics::drivers::SimulatedGnssDriver gnss{};
+    avionics::drivers::SimulatedGnssDriver gnss{simulation_clock};
     avionics::drivers::SimulatedBarometerDriver barometer{};
     avionics::drivers::SimulatedMagnetometerDriver magnetometer{};
     avionics::middleware::LocalMessageBus message_bus{};
@@ -137,6 +142,9 @@ int main()
 
         for (int step = 1; step <= 20; ++step)
         {
+            //IMU
+            //advance simulation time before reading the IMU:
+            simulation_clock.advanceUs(10'000);
             const auto imu_sample = imu.read();
 
             if (!imu_sample.valid)
@@ -149,6 +157,7 @@ int main()
 
             if (step % 2 == 0)
             {
+                //magnetometer
                 const auto magnetometer_sample =
                     magnetometer.read();
 
@@ -164,6 +173,7 @@ int main()
 
             if (step % 4 == 0)
             {
+                //barometer
                 const auto barometer_sample =
                     barometer.read();
 
@@ -179,7 +189,8 @@ int main()
 
             if (step % 10 == 0 && !gnss_dropout_active)
             {
-                const auto gnss_sample = gnss.read(imu_sample.timestamp_us);
+                //GNSS
+                const auto gnss_sample = gnss.read();
 
                 if (!gnss_sample.valid)
                 {
@@ -231,8 +242,11 @@ int main()
 
         // Health Monitor
 
-        const auto current_time_us =
-            sensor_manager.latestImu().timestamp_us;
+        //Using common clock:
+        const auto current_time_us = simulation_clock.nowUs();
+
+        // const auto current_time_us =
+        //     sensor_manager.latestImu().timestamp_us;
 
         std::cout
             << "\nDEBUG\n"
