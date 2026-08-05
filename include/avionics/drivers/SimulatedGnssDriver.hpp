@@ -2,7 +2,7 @@
 
 #include "avionics/drivers/ISensorDriver.hpp"
 #include "avionics/messages/SensorMessages.hpp"
-#include "avionics/platform/IClock.hpp"
+#include "avionics/platform/interfaces/IClock.hpp"
 
 namespace avionics::drivers
 {

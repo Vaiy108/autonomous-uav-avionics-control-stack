@@ -1,6 +1,6 @@
 #pragma once
 
-#include "avionics/platform/IClock.hpp"
+#include "avionics/platform/interfaces/IClock.hpp"
 
 namespace avionics::platform
 {

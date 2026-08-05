@@ -1,4 +1,4 @@
-#include "avionics/platform/SimulationClock.hpp"
+#include "avionics/platform/simulation/SimulationClock.hpp"
 
 namespace avionics::platform
 {

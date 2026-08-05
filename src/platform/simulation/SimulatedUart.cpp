@@ -1,4 +1,4 @@
-#include "avionics/platform/SimulatedUart.hpp"
+#include "avionics/platform/simulation/SimulatedUart.hpp"
 
 #include <algorithm>
 

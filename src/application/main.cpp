@@ -5,8 +5,10 @@
 #include "avionics/drivers/SimulatedMagnetometerDriver.hpp"
 #include "avionics/middleware/SensorManager.hpp"
 #include "avionics/services/SensorHealthMonitor.hpp"
-#include "avionics/platform/SimulationClock.hpp"
-#include "avionics/platform/SimulatedUart.hpp"
+#include "avionics/platform/interfaces/IClock.hpp"
+#include "avionics/platform/interfaces/IUart.hpp"
+#include "avionics/platform/simulation/SimulationClock.hpp"
+#include "avionics/platform/simulation/SimulatedUart.hpp"
 
 #include <iomanip>
 #include <iostream>
