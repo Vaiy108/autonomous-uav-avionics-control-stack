@@ -23,7 +23,9 @@ add_executable(
     src/services/health_monitor/SensorHealthMonitor.cpp
     src/platform/simulation/SimulationClock.cpp
     src/platform/simulation/SimulatedUart.cpp
-)
+    src/platform/simulation/SimulatedSpiBus.cpp
+    src/platform/simulation/SimulatedI2cBus.cpp
+)   
 
 target_include_directories(
     avionics_demo

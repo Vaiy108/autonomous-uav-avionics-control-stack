@@ -9,6 +9,8 @@
 #include "avionics/platform/interfaces/IUart.hpp"
 #include "avionics/platform/simulation/SimulationClock.hpp"
 #include "avionics/platform/simulation/SimulatedUart.hpp"
+#include "avionics/platform/simulation/SimulatedSpiBus.hpp"
+#include "avionics/platform/simulation/SimulatedI2cBus.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -17,6 +19,8 @@ int main()
 {
     //Clock
     avionics::platform::SimulationClock simulation_clock{};
+    
+    // UART test
     avionics::platform::SimulatedUart simulated_uart{};
 
     //verification block - it verifies:
@@ -43,6 +47,36 @@ int main()
         << "UART abstraction test: received "
         << bytes_received
         << " bytes\n";
+
+    // SPI and I2C test
+    avionics::platform::SimulatedSpiBus simulated_spi{};
+    avionics::platform::SimulatedI2cBus simulated_i2c{};
+
+    if (!simulated_spi.open() || !simulated_i2c.open())
+    {
+        std::cerr << "Failed to open simulated bus interfaces.\n";
+        return 1;
+    }
+
+    simulated_spi.writeRegister(0x10, 0xAB);
+
+    std::uint8_t spi_value{};
+    simulated_spi.readRegister(0x10, spi_value);
+
+    simulated_i2c.writeRegister(0x68, 0x20, 0xCD);
+
+    std::uint8_t i2c_value{};
+    simulated_i2c.readRegister(0x68, 0x20, i2c_value);
+
+    std::cout
+        << "SPI abstraction test: register value = 0x"
+        << std::hex
+        << static_cast<int>(spi_value)
+        << '\n'
+        << "I2C abstraction test: register value = 0x"
+        << static_cast<int>(i2c_value)
+        << std::dec
+        << "\n\n";
 
     //Drivers
     avionics::drivers::SimulatedImuDriver imu{};
