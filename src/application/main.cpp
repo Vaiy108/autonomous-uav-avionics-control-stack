@@ -6,6 +6,7 @@
 #include "avionics/middleware/SensorManager.hpp"
 #include "avionics/services/SensorHealthMonitor.hpp"
 #include "avionics/platform/SimulationClock.hpp"
+#include "avionics/platform/SimulatedUart.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -14,6 +15,32 @@ int main()
 {
     //Clock
     avionics::platform::SimulationClock simulation_clock{};
+    avionics::platform::SimulatedUart simulated_uart{};
+
+    //verification block - it verifies:
+    // 1. the UART opens
+    // 2. simulated data enters the receive buffer
+    // 3. code can read it through IUart
+    if (!simulated_uart.open())
+    {
+        std::cerr << "Failed to open simulated UART.\n";
+        return 1;
+    }
+
+    simulated_uart.injectReceivedData(
+        "$GPGGA,123519,5221.000,N,01031.000,E,1,08,0.9,78.0,M,0.0,M,,*00\r\n");
+
+    std::uint8_t uart_buffer[128]{};
+
+    const auto bytes_received =
+        simulated_uart.read(
+            uart_buffer,
+            sizeof(uart_buffer));
+
+    std::cout
+        << "UART abstraction test: received "
+        << bytes_received
+        << " bytes\n";
 
     //Drivers
     avionics::drivers::SimulatedImuDriver imu{};

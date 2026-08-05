@@ -22,6 +22,7 @@ add_executable(
     src/middleware/sensor_manager/SensorManager.cpp
     src/services/health_monitor/SensorHealthMonitor.cpp
     src/platform/windows/SimulationClock.cpp
+    src/platform/windows/SimulatedUart.cpp
 )
 
 target_include_directories(
