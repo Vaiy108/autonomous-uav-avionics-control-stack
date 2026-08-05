@@ -1,8 +1,22 @@
 # Embedded Avionics Sensor Platform
 
-A portable C++ avionics software platform demonstrating sensor-driver abstraction, publish-subscribe middleware, sensor health monitoring, time synchronization, fault injection, and software-in-the-loop (SIL) validation. The project emphasizes modular avionics software architecture, multi-rate sensor acquisition, centralized sensor management, and fault detection using software-in-the-loop (SIL) simulation.
+## Overview
 
-The project is designed as a portable, hardware-independent embedded avionics software stack. The architecture is intentionally structured to enable future integration with PX4, uORB, and NuttX.
+This project implements a modular **Embedded Avionics Software Stack** in modern **C++17**, following the layered architecture commonly used in aerospace and autonomous flight systems. The project emphasizes modular avionics software architecture, multi-rate sensor acquisition, centralized sensor management, and fault detection using software-in-the-loop (SIL) simulation.
+
+The project demonstrates the complete embedded software pipeline from low-level sensor drivers to middleware, centralized sensor management, health monitoring, and portable platform abstraction.
+
+Current implementation includes:
+
+- Modular simulated sensor drivers
+- Publish–Subscribe middleware
+- Multi-sensor synchronization
+- Sensor Health Monitoring
+- Fault Injection & Automatic Recovery
+- Platform Abstraction Layer
+- Software-in-the-loop (SIL) validation
+
+The architecture is designed to be portable across simulation, STM32, Linux, QNX, and PX4/NuttX platforms without changing the driver logic.
 
 
 ## Project Objectives
@@ -55,7 +69,7 @@ Future:
 ## System Architecture
 
 ```mermaid
-flowchart TB
+flowchart TD
 
 subgraph Sensors
 IMU
@@ -71,33 +85,53 @@ end
 subgraph Middleware
 MessageBus
 SensorManager
-end
-
-subgraph Services
 HealthMonitor
-TimeSynchronization
 end
 
-subgraph FlightSoftware
-Navigation
-FlightController
-Telemetry
+subgraph PlatformAbstraction
+IClock
+IUart
+ISpiBus
+II2cBus
+end
+
+subgraph Platforms
+Simulation
+STM32
+Linux
+QNX
+PX4
 end
 
 Sensors --> SensorDrivers
 SensorDrivers --> MessageBus
 MessageBus --> SensorManager
-
 SensorManager --> HealthMonitor
-SensorManager --> TimeSynchronization
 
-HealthMonitor --> Navigation
-TimeSynchronization --> Navigation
+SensorDrivers --> IClock
+SensorDrivers --> IUart
+SensorDrivers --> ISpiBus
+SensorDrivers --> II2cBus
 
-Navigation --> FlightController
-FlightController --> Telemetry
+IClock --> Simulation
+IClock --> STM32
+IClock --> Linux
+IClock --> QNX
+IClock --> PX4
 
-````
+IUart --> Simulation
+IUart --> STM32
+IUart --> Linux
+IUart --> QNX
+IUart --> PX4
+
+ISpiBus --> Simulation
+ISpiBus --> STM32
+
+II2cBus --> Simulation
+II2cBus --> STM32
+```
+
 ## Current Progress
 
 ### Simulated IMU Driver
@@ -160,31 +194,38 @@ Future extensions:
 
 ## Sensor Health Monitoring
 
-The Sensor Health Monitor continuously evaluates the operational status of each sensor using timestamp-based freshness checks and sensor availability information provided by the Sensor Manager.
+The Sensor Health Monitor continuously evaluates the operational state of each sensor using timestamp-based freshness monitoring.
 
-Current monitoring capabilities include:
+Current capabilities:
 
-- Latest sensor sample validation
-- Timestamp consistency monitoring
-- Stale-data detection
-- System-wide health assessment
-- Automatic recovery after sensor restoration
+- Latest sample validation
+- Timestamp consistency checks
+- Stale sensor detection
+- Overall system health evaluation
+- Automatic recovery after communication restoration
 
-Each sensor is evaluated independently and classified as:
+Each sensor is classified as:
 
-- **HEALTHY** – Sensor data is valid and updated within the expected interval.
-- **STALE** – Sensor data has not been updated within the configured timeout.
-- **UNAVAILABLE** – No valid sensor data has been received.
+- **HEALTHY**
+- **STALE**
+- **UNAVAILABLE**
 
-The overall system health is derived from the health state of all monitored sensors.
+A GNSS communication dropout is intentionally injected into the software-in-the-loop simulation.
 
-### GNSS Fault Injection Demonstration
+The Health Monitor detects stale sensor data, transitions the system state to **DEGRADED**, and automatically restores the system to **HEALTHY** once valid GNSS data resumes.
 
-To validate the health monitoring framework, a GNSS communication dropout is intentionally injected into the software-in-the-loop simulation.
+### Fault Detection
 
-The Health Monitor detects that the GNSS measurements have exceeded the configured freshness threshold and reports a **STALE** sensor while the remaining sensors continue operating normally. Consequently, the overall system health transitions to **DEGRADED**.
+<p align="center">
+<img src="docs/images/health_monitor_degraded.png" width="800">
+</p>
 
-Once GNSS measurements resume, the Sensor Manager immediately updates the latest synchronized sensor state and the Health Monitor automatically restores the system status to **HEALTHY** without requiring any manual intervention.
+### Automatic Recovery
+
+<p align="center">
+<img src="docs/images/health_monitor_recovery.png" width="800">
+</p>
+
 
 This demonstrates the complete fault lifecycle:
 
@@ -202,71 +243,152 @@ GNSS Recovery
 Automatic System Recovery
 ```
 
-### Fault Detection
-
-<p align="center">
-<img src="docs/images/health_monitor_degraded.png" width="750">
-</p>
-
-### Automatic Recovery
-
-<p align="center">
-<img src="docs/images/health_monitor_recovery.png" width="750">
-</p>
-
 ---
+
+## Platform Abstraction Layer
+
+The project introduces a hardware-independent platform abstraction layer that isolates embedded sensor drivers from operating system and hardware-specific implementations.
+
+Current interfaces:
+
+| Interface | Purpose |
+|-----------|----------|
+| **IClock** | Common timestamp source |
+| **IUart** | UART communication |
+| **ISpiBus** | SPI communication |
+| **II2cBus** | I²C communication |
+
+Current simulation implementations:
+
+- SimulationClock
+- SimulatedUart
+- SimulatedSpiBus
+- SimulatedI2cBus
+
+Future implementations:
+
+- STM32 HAL
+- Linux/POSIX
+- QNX
+- PX4/NuttX
+
+Using dependency injection, sensor drivers depend only on abstract interfaces rather than platform-specific APIs.
+
+Consequently, migrating the software to another operating system or hardware platform requires only a new platform implementation while the driver logic remains unchanged.
+
+--- 
 
 ## Project Status
 
 ### Completed
 
-- ✅ Modular C++17 project architecture
-- ✅ Simulated IMU Driver (100 Hz)
-- ✅ Simulated Magnetometer Driver (50 Hz)
-- ✅ Simulated Barometer Driver (25 Hz)
-- ✅ Simulated GNSS Driver (10 Hz)
+- ✅ Modular C++17 architecture
+- ✅ CMake build system
+- ✅ Simulated IMU Driver
+- ✅ Simulated GNSS Driver
+- ✅ Simulated Barometer Driver
+- ✅ Simulated Magnetometer Driver
 - ✅ Publish–Subscribe Middleware
 - ✅ Multi-Sensor Manager
 - ✅ Sensor Health Monitor
-- ✅ Stale Sensor Detection
-- ✅ Fault Injection & Automatic Recovery
-- ✅ Software-in-the-Loop (SIL) Validation
+- ✅ Fault Injection & Recovery
+- ✅ Platform Abstraction Layer
+- ✅ Shared Clock Infrastructure
+- ✅ Software-in-the-loop Validation
 
 ### In Progress
 
-- Platform Abstraction Layer
-- Hardware Communication Interfaces
+- Linux/POSIX implementation
+- STM32 HAL implementation
+- PX4 integration
 
 ### Planned
 
-- ⬜ UART abstraction
-- ⬜ SPI abstraction
-- ⬜ I²C abstraction
-- ⬜ STM32 HAL platform
-- ⬜ Linux/POSIX platform
-- ⬜ QNX platform
-- ⬜ PX4/uORB integration
 - ⬜ NuttX support
-- ⬜ Real GNSS (NEO-M8N) driver
-- ⬜ Air-data sensor
+- ⬜ Real GNSS (NEO-M8N)
+- ⬜ PX4 uORB adapter
+- ⬜ Embedded debugging examples
+
 
 ---
 
 
 ## Technologies
 
-- C++17
+- Modern C++17
 - CMake
 - Publish–Subscribe Middleware
 - Software-in-the-loop (SIL)
 - Modular Sensor Drivers
+- Platform Abstraction Layer
+- Dependency Injection
 - Git
-- GitHub Actions (planned)
-- PX4/uORB (planned)
-- NuttX (planned)
-- STM32 HAL (planned)
-- Linux/POSIX (planned)
-- QNX (planned)
+- GitHub
+
+Planned:
+
+- STM32 HAL
+- Linux/POSIX
+- PX4
+- NuttX
+
+---
+
+## Folder Structure
+
+```
+embedded-avionics-software-stack/
+
+├── include/
+│   └── avionics/
+│       ├── drivers/
+│       ├── middleware/
+│       ├── messages/
+│       ├── services/
+│       └── platform/
+│           ├── interfaces/
+│           │   ├── IClock.hpp
+│           │   ├── IUart.hpp
+│           │   ├── ISpiBus.hpp
+│           │   └── II2cBus.hpp
+│           │
+│           └── simulation/
+│               ├── SimulationClock.hpp
+│               ├── SimulatedUart.hpp
+│               ├── SimulatedSpiBus.hpp
+│               └── SimulatedI2cBus.hpp
+│
+├── src/
+│   ├── drivers/
+│   ├── middleware/
+│   ├── services/
+│   └── platform/
+│       ├── simulation/
+│       ├── stm32/
+│       ├── linux/
+│       ├── qnx/
+│       └── px4/
+
+```
+
+## Roadmap
+
+### Completed
+
+- Sensor Drivers
+- Middleware
+- Sensor Manager
+- Health Monitoring
+- Fault Injection
+- Platform Abstraction
+
+### Next
+
+- Linux Validation
+- STM32 HAL Backend
+- PX4 Integration
+- NuttX Build
+- Real GNSS Driver
 
 ---
 
