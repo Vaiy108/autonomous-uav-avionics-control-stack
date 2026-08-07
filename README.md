@@ -318,23 +318,42 @@ The Embedded Avionics Software Stack has been successfully validated on both Win
 - ✅ Shared Clock Infrastructure
 - ✅ Software-in-the-loop Validation
 - ✅ Cross-platform Validation (Windows + Ubuntu)
+- ✅ Cross-platform clock abstraction
+- ✅ Linux validation
+- ✅ PX4 integration (custom uORB module)
 
 ### In Progress
 
-- Linux/POSIX implementation
+- SIL/HIL validation
 - STM32 HAL implementation
-- PX4 integration
 - NuttX validation
 
 ### Planned
 
-- ⬜ NuttX support
-- ⬜ Real GNSS (NEO-M8N)
-- ⬜ PX4 uORB adapter
-- ⬜ Embedded debugging examples
+- CAN bus integration
+- Ethernet interface
+- Real sensor integration -GNSS (NEO-M8N) (I2C/SPI/UART)
+- PX4 hardware deployment
 
 
 ---
+
+## Related Projects
+
+### PX4 Avionics Sensor Monitor
+
+A custom PX4 module developed to validate the embedded avionics concepts used in this repository against the PX4 flight-software ecosystem. This project demonstrates the same avionics software concepts implemented inside the PX4 flight stack.
+
+The module demonstrates:
+
+- Custom PX4 module development
+- uORB middleware integration
+- IMU and GNSS subscriptions
+- Multi-rate sensor monitoring
+- Sensor health diagnostics
+- PX4 SITL / Gazebo validation
+
+**Repository:** [px4-avionics-sensor-monitor](https://github.com/Vaiy108/px4-avionics-sensor-monitor)
 
 
 ## Technologies
