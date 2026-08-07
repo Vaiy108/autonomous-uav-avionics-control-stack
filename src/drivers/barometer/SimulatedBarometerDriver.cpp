@@ -12,7 +12,6 @@ SimulatedBarometerDriver::SimulatedBarometerDriver(
 
 bool SimulatedBarometerDriver::initialize()
 {
-    timestamp_us_ = 0;
 
     status_ = SensorStatus::ready;
 

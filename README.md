@@ -278,6 +278,28 @@ Consequently, migrating the software to another operating system or hardware pla
 
 --- 
 
+## Cross-Platform Validation
+
+The Embedded Avionics Software Stack has been successfully validated on both Windows and Ubuntu Linux.
+
+| Platform | Compiler | Status |
+|----------|----------|--------|
+| Windows 11 | MSVC | ✅ |
+| Ubuntu 22.04 | GCC 11.4 | ✅ |
+
+### Linux Build
+
+![Linux Build](docs/images/linux_build_success.png)
+
+### Linux Runtime Validation
+
+![Linux Runtime](docs/images/linux_runtime_validation1.png)
+
+![Linux Runtime](docs/images/linux_runtime_validation2.png)
+
+---
+
+
 ## Project Status
 
 ### Completed
@@ -295,12 +317,14 @@ Consequently, migrating the software to another operating system or hardware pla
 - ✅ Platform Abstraction Layer
 - ✅ Shared Clock Infrastructure
 - ✅ Software-in-the-loop Validation
+- ✅ Cross-platform Validation (Windows + Ubuntu)
 
 ### In Progress
 
 - Linux/POSIX implementation
 - STM32 HAL implementation
 - PX4 integration
+- NuttX validation
 
 ### Planned
 
@@ -317,6 +341,8 @@ Consequently, migrating the software to another operating system or hardware pla
 
 - Modern C++17
 - CMake
+- Windows (MSVC)
+- Ubuntu Linux (GCC)
 - Publish–Subscribe Middleware
 - Software-in-the-loop (SIL)
 - Modular Sensor Drivers

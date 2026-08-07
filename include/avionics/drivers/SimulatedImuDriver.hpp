@@ -21,7 +21,7 @@ public:
     [[nodiscard]] messages::ImuSample read();
 
 private:
-	const platform::IClock& clock_
+	const platform::IClock& clock_;
     SensorStatus status_{SensorStatus::uninitialized};
 };
 

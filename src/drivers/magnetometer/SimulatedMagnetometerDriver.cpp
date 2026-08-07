@@ -12,7 +12,7 @@ SimulatedMagnetometerDriver::SimulatedMagnetometerDriver(
 
 bool SimulatedMagnetometerDriver::initialize()
 {
-    timestamp_us_ = 0;
+    
     status_ = SensorStatus::ready;
 
     return true;
