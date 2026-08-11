@@ -344,6 +344,68 @@ Scope: This is a project-level demonstration of safety-oriented avionics
 software development and traceability. It does not claim compliance with a
 formal aircraft certification standard.
 
+---
+
+## STM32 Hardware Implementation
+
+The platform abstraction layer has been extended from the host-based
+Linux/POSIX implementation to a physical STM32 target using a
+NUCLEO-F401RE (ARM Cortex-M4F).
+
+The STM32 target is cross-compiled using `arm-none-eabi-gcc/g++` and
+integrates STM32F4 HAL/CMSIS with board-specific startup and linker
+configuration.
+
+### STM32F401RE Hardware Validation
+
+The initial hardware implementation validates the `IClock` abstraction
+on the physical STM32F401RE target.
+
+Implemented and validated:
+
+- ARM Cortex-M4F cross-compilation using CMake
+- STM32F4 HAL/CMSIS integration
+- board-specific startup and linker configuration
+- `Stm32Clock` implementation of the common `IClock` interface
+- firmware programming through ST-LINK/SWD using OpenOCD
+- flash verification and target reset
+- execution on physical STM32F401RE hardware
+- GPIO timing validation using onboard LD2 (PA5)
+
+#### ARM Firmware Build
+
+The STM32 target is cross-compiled with the GNU Arm Embedded Toolchain
+using a dedicated CMake toolchain configuration.
+
+![STM32F401RE firmware build](docs/images/stm32_f401re_firmware_build.png)
+
+The build produces the target firmware image:
+
+```text
+avionics_stm32.elf
+```
+
+#### Firmware Programming and Verification
+
+![STM32F401RE firmware flashing](docs/images/stm32_f401re_hardware_flash.png)
+
+OpenOCD successfully programs the generated ARM ELF image, verifies the
+flash contents, and resets the physical target.
+
+
+#### Hardware Execution
+
+![STM32F401RE clock validation](docs/images/stm32_f401re_clock_validation.gif)
+
+The STM32 implementation of `IClock` drives a periodic GPIO toggle on
+the physical NUCLEO-F401RE, providing a simple observable validation of
+the hardware timing backend.
+
+
+---
+
+
+
 ## Project Status
 
 ### Completed

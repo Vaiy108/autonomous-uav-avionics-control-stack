@@ -43,3 +43,4 @@ venv/
 # PX4/NuttX generated files
 .px4board
 px4_build/
+firmware/stm32/build/
