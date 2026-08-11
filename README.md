@@ -297,8 +297,52 @@ The Embedded Avionics Software Stack has been successfully validated on both Win
 
 ![Linux Runtime](docs/images/linux_runtime_validation2.png)
 
+
 ---
 
+
+## Safety Engineering & Verification
+
+The software stack includes a lightweight safety-oriented development workflow
+linking software requirements, representative avionics hazards, implemented
+mitigations, and verification evidence.
+
+The current documentation includes:
+
+- **[Software Requirements](docs/safety/software_requirements.md)**  
+  Functional, health-monitoring, platform-abstraction, and PX4 integration
+  requirements.
+
+- **[Software Verification Matrix](docs/safety/verification_matrix.md)**  
+  Requirement-to-verification traceability covering SIL fault injection,
+  integration testing, Linux runtime validation, PX4 SITL, and NuttX/STM32H7
+  cross-target validation.
+
+- **[Project-Level Hazard Analysis](docs/safety/hara.md)**  
+  Representative sensor/software failure conditions, severity assessment,
+  detection mechanisms, mitigations, residual risks, and requirement
+  traceability.
+
+### Verification Flow
+
+```text
+Hazard
+   ↓
+Software Requirement
+   ↓
+Implementation / Mitigation
+   ↓
+SIL / Integration / Build Verification
+   ↓
+PASS / NOT TESTED
+```
+
+---
+
+
+Scope: This is a project-level demonstration of safety-oriented avionics
+software development and traceability. It does not claim compliance with a
+formal aircraft certification standard.
 
 ## Project Status
 
