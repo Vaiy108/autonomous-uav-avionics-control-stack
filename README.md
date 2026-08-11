@@ -2,22 +2,46 @@
 
 ## Overview
 
-This project implements a modular **Embedded Avionics Software Stack** in modern **C++17**, following the layered architecture commonly used in aerospace and autonomous flight systems. The project emphasizes modular avionics software architecture, multi-rate sensor acquisition, centralized sensor management, and fault detection using software-in-the-loop (SIL) simulation.
+This project implements a modular **Embedded Avionics Software Stack** in modern **C++17**, following a layered architecture for aerospace and autonomous flight systems.
 
-The project demonstrates the complete embedded software pipeline from low-level sensor drivers to middleware, centralized sensor management, health monitoring, and portable platform abstraction.
+The stack demonstrates an end-to-end development path from **software-in-the-loop (SIL) simulation to physical embedded hardware**, covering sensor drivers, publish–subscribe middleware, synchronized sensor management, health monitoring, platform abstraction, PX4/uORB integration, NuttX cross-target validation, and deployment on an **STM32F401RE** with a real **u-blox NEO-M8N GNSS receiver**.
+
+The architecture separates hardware-independent avionics logic from platform-specific implementations through common interfaces, allowing the same sensor and application-level concepts to be exercised across simulation, Linux, PX4/NuttX, and STM32 targets.
 
 Current implementation includes:
 
-- Modular simulated sensor drivers
-- Publish–Subscribe middleware
-- Multi-sensor synchronization
+- Modular C++17 sensor-driver architecture
+- Multi-rate IMU, GNSS, barometer, and magnetometer simulation
+- Lightweight publish–subscribe middleware
+- Multi-sensor synchronization and centralized Sensor Manager
 - Sensor Health Monitoring
 - Fault Injection & Automatic Recovery
-- Platform Abstraction Layer
-- Software-in-the-loop (SIL) validation
+- Hardware-independent Platform Abstraction Layer
+- Software-in-the-loop (SIL) and Linux runtime validation
+- PX4/uORB sensor-monitoring integration and Gazebo SITL validation
+- NuttX / ARM Cortex-M7 cross-target firmware validation
+- STM32F401RE hardware backend using STM32 HAL
+- Physical `IClock` and `IUart` backend validation
+- Real NEO-M8N GNSS integration over UART
+- Embedded NMEA GGA parsing and GNSS fix validation
+- Hardware-timestamped GNSS measurements mapped to the common `GnssSample` data model
+- Requirements, verification traceability, fault analysis, and project-level HARA
 
-The architecture is designed to be portable across simulation, STM32, Linux, QNX, and PX4/NuttX platforms without changing the driver logic.
+The resulting project demonstrates the progression:
 
+```text
+SIL Simulation
+      ↓
+Linux / POSIX
+      ↓
+PX4 / uORB / Gazebo SITL
+      ↓
+NuttX Cross-Target Build
+      ↓
+STM32 Physical Hardware
+      ↓
+Real NEO-M8N GNSS
+```
 
 ## Project Objectives
 
@@ -31,25 +55,29 @@ The architecture is designed to be portable across simulation, STM32, Linux, QNX
 
 ## Current Development Phase
 
-The project currently implements a portable software-in-the-loop (SIL)
-embedded avionics software stack in modern C++17.
+The project has progressed from a host-based software-in-the-loop prototype
+to a cross-platform embedded avionics stack validated across simulation,
+Linux, PX4/NuttX, and physical STM32 hardware.
 
-Completed components include:
+Completed development stages include:
 
-- Modular simulated sensor drivers
+- Multi-rate simulated sensor drivers
 - Publish–Subscribe middleware
-- Multi-sensor synchronization through a Sensor Manager
-- Hardware-independent software architecture
-- CMake build system
-- Windows SIL validation
-
-The next development phase will introduce:
-
+- Multi-sensor synchronization through the Sensor Manager
 - Sensor Health Monitoring
-- Platform abstraction (STM32, Linux, QNX)
-- PX4/uORB adapters
-- NuttX validation on Ubuntu
-- Real GNSS hardware integration
+- Fault Injection & Automatic Recovery
+- Hardware-independent Platform Abstraction Layer
+- Windows and Linux SIL validation
+- PX4/uORB integration with Gazebo SITL
+- NuttX ARM cross-target firmware validation
+- STM32F401RE hardware backend
+- Physical `IClock` and `IUart` validation
+- Real NEO-M8N GNSS integration
+- Embedded NMEA parsing and timestamped GNSS measurements
+- Requirements, verification traceability, and project-level HARA
+
+Further extensions may include additional physical sensors, CAN/Ethernet
+interfaces, and deployment to PX4 flight-controller hardware.
 
 ---
 
@@ -176,14 +204,6 @@ Current responsibilities include:
 - Centralized sensor access
 - Hardware-independent interface
 
-Future extensions:
-
-- Sensor health monitoring
-- Stale-data detection
-- Timestamp validation
-- Fault injection
-- Navigation interface
-
 <p align="center"> 
 <img src="docs/images/sensor_manager_demo.png" 
 	 alt="Sensor manager showing synchronized sensor state"
@@ -258,19 +278,16 @@ Current interfaces:
 | **ISpiBus** | SPI communication |
 | **II2cBus** | I²C communication |
 
-Current simulation implementations:
+Current platform implementations and validation targets:
 
-- SimulationClock
-- SimulatedUart
-- SimulatedSpiBus
-- SimulatedI2cBus
-
-Future implementations:
-
-- STM32 HAL
+- Simulation
 - Linux/POSIX
-- QNX
+- STM32 HAL
 - PX4/NuttX
+
+Future platform extension:
+
+- QNX
 
 Using dependency injection, sensor drivers depend only on abstract interfaces rather than platform-specific APIs.
 
@@ -620,12 +637,12 @@ originate from the physical receiver rather than a fixed simulation source.
 
 ### GNSS Timestamp Integration
 
-he parsed GNSS measurement is subsequently mapped into the common avionics
+The parsed GNSS measurement is subsequently mapped into the common avionics
 GnssSample data structure defined in:
 
 include/avionics/messages/SensorMessages.hpp
 
-The STM32 IClock backend supplies the local acquisition timestamp,
+The STM32 `IClock` backend supplies the local acquisition timestamp,
 combining the real sensor measurement with the same timing abstraction used
 elsewhere in the avionics stack.
 
@@ -636,23 +653,23 @@ NEO-M8N
     |
     | Raw NMEA
     v
-Stm32Uart
+`Stm32Uart`
     |
     v
-NmeaGgaParser
+`NmeaGgaParser`
     |
     | Parsed GGA fix
     v
 GNSS measurement
     |
-    +---------- Stm32Clock
+    +---------- `Stm32Clock`
     |               |
     |          timestamp
     |               |
     +-------+-------+
             |
             v
-        GnssSample
+        `GnssSample`
             |
             v
 Higher-Level Avionics Software
@@ -755,43 +772,31 @@ be deployed and exercised on physical embedded avionics hardware.
 
 ### Completed
 
-- ✅ Modular C++17 architecture
-- ✅ CMake build system
-- ✅ Simulated IMU Driver
-- ✅ Simulated GNSS Driver
-- ✅ Simulated Barometer Driver
-- ✅ Simulated Magnetometer Driver
-- ✅ Publish–Subscribe Middleware
-- ✅ Multi-Sensor Manager
-- ✅ Sensor Health Monitor
-- ✅ Fault Injection & Recovery
-- ✅ Platform Abstraction Layer
-- ✅ Shared Clock Infrastructure
-- ✅ Software-in-the-loop Validation
-- ✅ Cross-platform Validation (Windows + Ubuntu)
-- ✅ Cross-platform clock abstraction
-- ✅ Linux validation
-- ✅ PX4 integration (custom uORB module)
-- ✅ NuttX validation
-- ✅ Requirements → SIL verification → fault injection → traceability → project-level HARA
-- ✅ HIL validation
-- ✅ STM32 `IClock` hardware validation
-- ✅ STM32 `IUart` hardware backend
-- ✅ USART2 hardware communication validation
-- ✅ Real NEO-M8N GNSS hardware integration
-- ✅ Raw NMEA acquisition on STM32
-- ✅ Embedded NMEA GGA parser
-- ✅ Real GNSS position acquisition
-- ✅ GNSS validity handling
-- ✅ Timestamped STM32 GNSS samples
+### Completed
 
+- Sensor Drivers
+- Publish–Subscribe Middleware
+- Sensor Manager
+- Health Monitoring
+- Fault Injection & Recovery
+- Platform Abstraction
+- Windows / Linux SIL Validation
+- PX4 / uORB Integration
+- Gazebo SITL Validation
+- NuttX Cross-Target Build
+- STM32 HAL Backend
+- Physical STM32 Hardware Validation
+- Real NEO-M8N GNSS Integration
+- NMEA GGA Parser
+- Requirements & Verification Traceability
+- Project-Level HARA
 
-### Planned
+### Future Extensions
 
 - CAN bus integration
 - Ethernet interface
-- Additional physical sensor integration (IMU / barometer / magnetometer)
-- PX4 hardware deployment
+- Physical IMU / barometer / magnetometer integration
+- PX4 flight-controller hardware deployment
 
 
 ---
@@ -818,22 +823,26 @@ The module demonstrates:
 
 - Modern C++17
 - CMake
-- Windows (MSVC)
-- Ubuntu Linux (GCC)
+- STM32 HAL / CMSIS
+- ARM GNU Embedded Toolchain
+- STM32F401RE / ARM Cortex-M4F
+- ST-LINK / OpenOCD
+- u-blox NEO-M8N GNSS
+- NMEA
+- Linux / POSIX
+- Windows / MSVC
+- Ubuntu / GCC
+- PX4
+- uORB
+- NuttX
+- Gazebo SITL
 - Publish–Subscribe Middleware
 - Software-in-the-loop (SIL)
+- Hardware-in-the-loop / Physical Hardware Validation
 - Modular Sensor Drivers
 - Platform Abstraction Layer
 - Dependency Injection
-- Git
-- GitHub
-
-Planned:
-
-- STM32 HAL
-- Linux/POSIX
-- PX4
-- NuttX
+- Git / GitHub
 
 ---
 
