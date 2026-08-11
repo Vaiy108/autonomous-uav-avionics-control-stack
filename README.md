@@ -365,12 +365,14 @@ formal aircraft certification standard.
 - ✅ Cross-platform clock abstraction
 - ✅ Linux validation
 - ✅ PX4 integration (custom uORB module)
+- ✅ NuttX validation
+- ✅ Requirements → SIL verification → fault injection → traceability → project-level HARA
 
 ### In Progress
 
-- SIL/HIL validation
+- HIL validation
 - STM32 HAL implementation
-- NuttX validation
+
 
 ### Planned
 
