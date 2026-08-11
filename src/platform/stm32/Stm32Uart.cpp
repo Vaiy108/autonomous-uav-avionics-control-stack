@@ -13,25 +13,56 @@ Stm32Uart::Stm32Uart(
 
 bool Stm32Uart::open()
 {
-    if (instance_ != USART2)
+    GPIO_InitTypeDef gpio{};
+
+    /*
+     * USART2
+     * PA2  -> TX
+     * PA3  -> RX
+     *
+     * Used for ST-LINK Virtual COM / Ubuntu debug output.
+     */
+    if (instance_ == USART2)
+    {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_USART2_CLK_ENABLE();
+
+        gpio.Pin       = GPIO_PIN_2 | GPIO_PIN_3;
+        gpio.Mode      = GPIO_MODE_AF_PP;
+        gpio.Pull      = GPIO_PULLUP;
+        gpio.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
+        gpio.Alternate = GPIO_AF7_USART2;
+
+        HAL_GPIO_Init(GPIOA, &gpio);
+    }
+
+    /*
+     * USART1
+     * PA9  -> TX
+     * PA10 -> RX
+     *
+     * Used for the external NEO-M8N GNSS receiver.
+     */
+    else if (instance_ == USART1)
+    {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_USART1_CLK_ENABLE();
+
+        gpio.Pin       = GPIO_PIN_9 | GPIO_PIN_10;
+        gpio.Mode      = GPIO_MODE_AF_PP;
+        gpio.Pull      = GPIO_PULLUP;
+        gpio.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
+        gpio.Alternate = GPIO_AF7_USART1;
+
+        HAL_GPIO_Init(GPIOA, &gpio);
+    }
+
+    else
     {
         return false;
     }
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_USART2_CLK_ENABLE();
-
-    GPIO_InitTypeDef gpio{};
-
-    gpio.Pin       = GPIO_PIN_2 | GPIO_PIN_3;
-    gpio.Mode      = GPIO_MODE_AF_PP;
-    gpio.Pull      = GPIO_PULLUP;
-    gpio.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
-    gpio.Alternate = GPIO_AF7_USART2;
-
-    HAL_GPIO_Init(GPIOA, &gpio);
-
-    uart_.Instance          = USART2;
+    uart_.Instance          = instance_;
     uart_.Init.BaudRate     = baud_rate_;
     uart_.Init.WordLength   = UART_WORDLENGTH_8B;
     uart_.Init.StopBits     = UART_STOPBITS_1;
@@ -49,6 +80,7 @@ bool Stm32Uart::open()
     open_ = true;
     return true;
 }
+
 
 void Stm32Uart::close()
 {
