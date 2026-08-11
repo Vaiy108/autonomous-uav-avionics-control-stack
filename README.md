@@ -402,6 +402,72 @@ the physical NUCLEO-F401RE, providing a simple observable validation of
 the hardware timing backend.
 
 
+### STM32 UART Backend Validation
+
+The common `IUart` platform interface was implemented for the
+NUCLEO-F401RE using the STM32 HAL USART2 peripheral.
+
+The STM32 backend encapsulates hardware-specific UART configuration and
+communication behind the same portable interface used by the simulated
+platform implementation.
+
+```text
+Application
+    |
+    v
+IUart
+    |
+    v
+Stm32Uart
+    |
+    v
+STM32 HAL
+    |
+    v
+USART2 (PA2 / PA3)
+    |
+    v
+ST-LINK Virtual COM Port
+    |
+    v
+Ubuntu /dev/ttyACM0
+```
+
+The implementation provides:
+
+- open()
+- close()
+- isOpen()
+- read()
+- write()
+
+The application no longer accesses HAL_UART_Transmit() or peripheral
+configuration directly. UART initialization and data transfer are isolated
+inside the Stm32Uart hardware backend.
+
+#### Runtime Validation
+
+The STM32 firmware was cross-compiled, flashed to the physical
+NUCLEO-F401RE, and monitored from Ubuntu using Minicom at 115200 baud.
+
+<p align="center"> <img src="docs/images/stm32_iuart_backend_validation.png" width="900"> </p>
+
+The repeated runtime message:
+```
+STM32 IUart backend alive
+```
+
+confirms that:
+
+- the STM32 firmware executes continuously on physical hardware
+- the Stm32Uart implementation successfully initializes USART2
+- the common IUart::write() interface successfully transmits data
+- UART data is received on Ubuntu through the ST-LINK Virtual COM Port
+
+This validates the transition from the simulated UART backend to a
+physical STM32 communication backend while preserving the common
+platform abstraction.
+
 ---
 
 
@@ -429,11 +495,16 @@ the hardware timing backend.
 - ✅ PX4 integration (custom uORB module)
 - ✅ NuttX validation
 - ✅ Requirements → SIL verification → fault injection → traceability → project-level HARA
+- ✅ HIL validation
+- ✅ STM32 `IClock` hardware validation
+- ✅ STM32 `IUart` hardware backend
+- ✅ USART2 hardware communication validation
 
 ### In Progress
 
-- HIL validation
-- STM32 HAL implementation
+
+- Real GNSS integration
+- HIL sensor validation
 
 
 ### Planned

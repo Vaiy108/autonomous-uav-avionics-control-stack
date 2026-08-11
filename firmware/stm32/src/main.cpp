@@ -1,8 +1,12 @@
 #include "stm32f4xx_hal.h"
-#include "avionics/platform/stm32/Stm32Clock.hpp"
 
-extern "C"
-void SysTick_Handler(void)
+#include "avionics/platform/stm32/Stm32Clock.hpp"
+#include "avionics/platform/stm32/Stm32Uart.hpp"
+
+#include <cstdint>
+#include <cstring>
+
+extern "C" void SysTick_Handler(void)
 {
     HAL_IncTick();
 }
@@ -12,25 +16,36 @@ int main()
     HAL_Init();
 
     avionics::platform::Stm32Clock clock{};
+    avionics::platform::Stm32Uart uart{USART2, 115200U};
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    if (!uart.open())
+    {
+        while (true)
+        {
+        }
+    }
 
-    GPIO_InitTypeDef gpio{};
-    gpio.Pin = GPIO_PIN_5;
-    gpio.Mode = GPIO_MODE_OUTPUT_PP;
-    gpio.Pull = GPIO_NOPULL;
-    gpio.Speed = GPIO_SPEED_FREQ_LOW;
+    const char startup[] =
+        "\r\nEmbedded Avionics STM32 Backend\r\n"
+        "Stm32Uart abstraction validation: OK\r\n";
 
-    HAL_GPIO_Init(GPIOA, &gpio);
-    
+    uart.write(
+        reinterpret_cast<const std::uint8_t*>(startup),
+        std::strlen(startup));
+
     while (true)
     {
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        const char message[] =
+            "STM32 IUart backend alive\r\n";
 
-	const auto start = clock.nowUs();
+        uart.write(
+            reinterpret_cast<const std::uint8_t*>(message),
+            std::strlen(message));
 
-	while ((clock.nowUs() - start) < 500000ULL)
-	{
-	}
+        const auto start = clock.nowUs();
+
+        while ((clock.nowUs() - start) < 1000000ULL)
+        {
+        }
     }
 }
