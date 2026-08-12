@@ -82,16 +82,16 @@ attitude at the target.
 ---
 
 ### Position Tracking
-
 ![6-DOF position tracking](analysis/position_tracking_6dof.png)
 
 ### XY Flight Trajectory
-
 ![6-DOF XY trajectory](analysis/xy_trajectory_6dof.png)
 
-### Attitude and Altitude Response
+### Attitude Tracking
+![6-DOF attitude tracking](analysis/attitude_tracking_6dof.png)
 
-![6-DOF attitude and altitude response](analysis/attitude_altitude_6dof.png)
+### Altitude Hold
+![6-DOF altitude hold](analysis/altitude_hold_6dof.png)
 
 
 
