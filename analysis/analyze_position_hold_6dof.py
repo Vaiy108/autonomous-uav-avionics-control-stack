@@ -168,75 +168,77 @@ def main():
     plt.close()
 
     # -------------------------------------------------
-    # Plot 3:
-    # Roll/pitch + altitude response
+    # Plot 3: attitude tracking
     # -------------------------------------------------
-    fig, ax_att = plt.subplots(figsize=(9, 5))
+    plt.figure(figsize=(9, 5))
 
-    ax_att.plot(
+    plt.plot(
         t,
         roll_sp,
         "--",
         label="Roll setpoint"
     )
 
-    ax_att.plot(
+    plt.plot(
         t,
         roll,
-        label="Roll"
+        label="Roll response"
     )
 
-    ax_att.plot(
+    plt.plot(
         t,
         pitch_sp,
         "--",
         label="Pitch setpoint"
     )
 
-    ax_att.plot(
+    plt.plot(
         t,
         pitch,
-        label="Pitch"
+        label="Pitch response"
     )
 
-    ax_att.set_xlabel("Time [s]")
-    ax_att.set_ylabel("Attitude [deg]")
-    ax_att.grid(True)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Attitude [deg]")
+    plt.title("6-DOF Attitude Tracking During Position Control")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
 
-    ax_alt = ax_att.twinx()
+    plt.savefig(
+        OUTPUT_DIR / "attitude_tracking_6dof.png",
+        dpi=180
+    )
 
-    ax_alt.plot(
+    plt.close()
+
+    # -------------------------------------------------
+    # Plot 4: altitude hold
+    # -------------------------------------------------
+    plt.figure(figsize=(9, 5))
+
+    plt.plot(
         t,
         altitude_sp,
-        ":",
+        "--",
         label="Altitude setpoint"
     )
 
-    ax_alt.plot(
+    plt.plot(
         t,
         z,
-        label="Altitude"
+        label="Altitude response"
     )
 
-    ax_alt.set_ylabel("Altitude [m]")
-
-    lines1, labels1 = ax_att.get_legend_handles_labels()
-    lines2, labels2 = ax_alt.get_legend_handles_labels()
-
-    ax_att.legend(
-        lines1 + lines2,
-        labels1 + labels2,
-        loc="best"
-    )
-
-    plt.title(
-        "Attitude and Altitude Response During Position Hold"
-    )
-
-    fig.tight_layout()
+    plt.xlabel("Time [s]")
+    plt.ylabel("Altitude [m]")
+    plt.title("6-DOF Altitude Hold During Position Control")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
 
     plt.savefig(
-        OUTPUT_DIR / "attitude_altitude_6dof.png",
+        OUTPUT_DIR / "altitude_hold_6dof.png",
         dpi=180
     )
 
@@ -245,7 +247,8 @@ def main():
     print("\nPlots written to:")
     print(" analysis/position_tracking_6dof.png")
     print(" analysis/xy_trajectory_6dof.png")
-    print(" analysis/attitude_altitude_6dof.png")
+    print(" analysis/attitude_tracking_6dof.png")
+    print(" analysis/altitude_hold_6dof.png")
 
 
 if __name__ == "__main__":
