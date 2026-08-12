@@ -44,3 +44,6 @@ venv/
 .px4board
 px4_build/
 firmware/stm32/build/
+
+# PX4 raw flight logs
+results/px4/*.ulg
