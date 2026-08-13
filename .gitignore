@@ -12,6 +12,7 @@ cmake-build-*/
 *.obj
 *.o
 *.pdb
+*.csv
 
 # Visual Studio
 .vs/

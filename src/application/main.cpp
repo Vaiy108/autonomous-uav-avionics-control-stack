@@ -161,7 +161,7 @@ int main()
             << sample.magnetic_field_ut.z << ") uT\n";
     });
 
-    std::cout << "Embedded Avionics Software Stack\n\n";
+    std::cout << "Autonomous UAV Avionics & Flight Control Stack\n\n";
 
     if (!imu.initialize() || !imu.selfTest())
     {

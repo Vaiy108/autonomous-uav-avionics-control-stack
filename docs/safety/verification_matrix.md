@@ -4,7 +4,7 @@
 
 This document provides traceability between the software requirements defined
 in `software_requirements.md` and the verification activities performed on the
-Embedded Avionics Software Stack.
+Autonomous UAV Avionics & Flight Control Software Stack.
 
 Verification is performed primarily through software-in-the-loop (SIL),
 integration testing, cross-platform compilation, PX4 SITL execution, and
