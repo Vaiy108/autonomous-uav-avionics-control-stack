@@ -2,15 +2,15 @@
 
 A C++17 autonomous UAV flight-control software stack demonstrating
 cascaded position, attitude and altitude control, actuator allocation,
-nonlinear 6-DOF rigid-body simulation, and PX4/Gazebo software-in-the-loop (SITL)
+nonlinear 6-DOF rigid-body simulation, and PX4/Gazebo Software-in-the-Loop (SITL)
 validation.
 
-The project implements a modular autonomous UAV flight-control software stack and validates it using both a custom nonlinear 6-DOF simulation and the PX4/Gazebo software-in-the-loop environment:
+The project implements a modular autonomous UAV flight-control software stack and validates it using both a custom nonlinear 6-DOF simulation and the PX4/Gazebo Software-in-the-Loop environment:
 
 **Position Command → Position Controller → Attitude Controller →
 Motor Mixer → Actuator Model → 6-DOF Vehicle Dynamics → State Feedback**
 
-The implementation is designed as a modular software-in-the-loop
+The implementation is designed as a modular Software-in-the-Loop
 development and validation environment for small autonomous UAS.
 
 ---
@@ -20,78 +20,65 @@ development and validation environment for small autonomous UAS.
 The repository implements an end-to-end autonomous flight-control software stack.
 The control pipeline is validated at two complementary levels:
 
-1. **Custom nonlinear 6-DOF simulation** for controller implementation and algorithm validation.
+1. **Custom Nonlinear 6-DOF simulation** for controller implementation and algorithm validation.
 2. **PX4/Gazebo Software-in-the-Loop (SITL)** for autopilot integration, autonomous mission execution, and flight-log-based verification.
 
 ```mermaid
 flowchart LR
+    A[Mission or Position Setpoint] --> B[Position Controller]
+    B --> C[Attitude Controller]
+    C --> D[Control Allocation / Motor Mixer]
 
-A[QGroundControl Mission - Mission Upload]
---> B[PX4 Navigator]
+    D --> E1[Custom Actuator Model]
+    E1 --> F1[Custom Nonlinear 6-DOF Plant]
+    F1 --> G1[State Feedback]
+    G1 --> B
 
-B --> C[Position Controller]
-
-C --> D[Attitude Controller]
-
-D --> E[Motor Mixer]
-
-E --> F[Actuator Model]
-
-F --> G[Nonlinear 6-DOF Dynamics]
-
-G --> H[IMU / GPS]
-
-H --> I[EKF2 State Estimator]
-
-I --> J[uORB Middleware]
-
-J --> C
-
-J --> K[ULog Flight Logger]
-
-K --> L[Python Flight Analysis]
+    D --> E2[PX4 / Gazebo SITL]
+    E2 --> F2[Simulated IMU and GNSS]
+    F2 --> G2[EKF2 State Estimation]
+    G2 --> H[uORB Middleware]
+    H --> B
+    H --> I[ULog Flight Logger]
+    I --> J[Python Flight Analysis]
 ```
 
 
 ---
 
 
-## Repository Structure
-
-```markdown
 ## Repository Structure
 
 ```text
-autonomous-uav-avionics-control-stack
+autonomous-uav-avionics-control-stack/
 ├── src/
-│   ├── application/        # Demo applications
-│   ├── control/            # PID, attitude, altitude, position controllers
-│   ├── actuation/          # Motor mixer and actuator model
-│   └── simulation/         # Nonlinear quadrotor dynamics
-│
+│   ├── application/
+│   ├── control/
+│   ├── actuation/
+│   ├── simulation/
+│   ├── drivers/
+│   ├── middleware/
+│   ├── platform/
+│   └── services/
+├── include/
+│   └── avionics/
 ├── tests/
-│   └── unit/               # GoogleTest unit tests
-│
+│   └── unit/
 ├── analysis/
-│   ├── px4/                # PX4 flight-log plots
-│   └── *.py                # Analysis scripts
-│
-├── docs/
-│   ├── images/
-│   ├── architecture/
-│   └── safety/
-│
-├── examples/
-│
-├── results/
 │   └── px4/
-│
+├── docs/
+├── examples/
+├── firmware/
+│   └── stm32/
+├── CMakeLists.txt
 └── README.md
 ```
 
+
+
 ---
 
-## Build
+## Build and Test
 
 ### Prerequisites
 
@@ -121,9 +108,36 @@ make -j$(nproc)
 
 ### Run
 
+#### Run the Avionics Demo
+
 ```bash
 ./avionics_demo
 ```
+
+#### Run Flight-Control Examples
+
+```bash
+./closed_loop_attitude_demo
+./position_hold_6dof_demo
+./closed_loop_6dof_demo
+```
+
+#### Run Unit Tests
+
+```bash
+ctest --output-on-failure
+```
+
+### Build & Unit Test Validation
+
+
+![build_and_unit_tests](docs/images/build_and_unit_tests.png)
+
+![build_and_unit_tests_results](docs/images/build_and_unit_tests_results.png)
+
+The clean build completed successfully, and all **7/7 flight-control unit tests passed**.
+
+
 
 ### PX4 SITL Validation
 
@@ -143,7 +157,7 @@ After the mission completes, copy the generated .ulg flight log into:
 results/px4/
 ```
 
-Run the post-flight analysis:
+Run the Post-flight analysis:
 
 ```bash
 python3 analysis/analyze_px4_ulog.py
@@ -168,21 +182,19 @@ The repository has been verified to build successfully from a clean clone on Ubu
 
 ## Software Stack
 
-```markdown
-## Software Stack
 
 | Component | Technology |
 |-----------|------------|
 | Programming Language | C++17 |
 | Build System | CMake |
-| Unit Testing | GoogleTest |
+| Unit Testing | Standalone C++ unit tests |
 | Vehicle Simulation | Custom Nonlinear 6-DOF |
 | Autopilot | PX4 |
 | Physics Engine | Gazebo |
 | Mission Planning | QGroundControl |
 | Middleware | PX4 uORB |
 | Flight Logging | ULog |
-| Post-processing | Python + pyulog + Matplotlib |
+| Post-processing | Python + PyULog + Matplotlib |
 | Development Platform | Ubuntu 22.04 |
 
 
@@ -206,7 +218,7 @@ D --> E[uORB Runtime Inspection]
 
 E --> F[ULog Flight Analysis]
 
-F --> G[Failsafe Validation]
+F --> G[Build and Regression Verification]
 ```
 
 ---
@@ -214,16 +226,10 @@ F --> G[Failsafe Validation]
 
 ## Project Highlights
 
-- Modular C++17 flight-control software architecture
-- Cascaded position, attitude, and altitude controllers
-- Nonlinear 6-DOF rigid-body simulation
-- PX4/Gazebo Software-in-the-Loop validation
-- Autonomous waypoint mission execution
-- uORB middleware inspection
-- ULog-based post-flight performance analysis
-- GPS failsafe validation using PX4 failure injection
-
----
+- Custom C++17 Non-linear 6-DOF flight-control simulation
+- PX4/Gazebo autonomous mission validation
+- 7/7 flight-control unit tests passing
+- ULog-based commanded-versus-measured performance analysis
 
 
 ## Key Capabilities
@@ -245,7 +251,7 @@ F --> G[Failsafe Validation]
 
 ## 6-DOF Closed-Loop Flight-Control Validation
 
-The cascaded controller was evaluated using a nonlinear 6-DOF
+The cascaded controller was evaluated using a Nonlinear 6-DOF
 quadrotor model.
 
 ### Validation Mission
@@ -304,12 +310,11 @@ attitude at the target.
 
 ---
 
----
 
 ## PX4 SITL / Gazebo Autonomous Flight Validation
 
 The flight-control work was extended to an industry-standard PX4
-software-in-the-loop (SITL) environment using Gazebo and QGroundControl.
+Software-in-the-Loop (SITL) environment using Gazebo and QGroundControl.
 
 A simulated PX4 x500 quadrotor was used to execute an autonomous
 waypoint mission while vehicle state, estimator outputs, navigation
@@ -395,7 +400,7 @@ waypoint tracking.
 ## PX4 ULog Flight-Performance Analysis
 
 The PX4 ULog generated during the autonomous mission was parsed using
-`pyulog`. Commanded setpoints were compared against estimated vehicle
+`PyULog`. Commanded setpoints were compared against estimated vehicle
 states over the detected flight interval.
 
 ### Quantitative Results
@@ -448,7 +453,6 @@ setpoints during acceleration, waypoint transitions, and RTL.
 The four motor commands show differential control activity during
 maneuvers while remaining below saturation throughout the mission.
 
----
 
 ### PX4 Validation Summary
 
@@ -459,7 +463,7 @@ validation workflow:
 Flight Control → Actuator Allocation → Physics Simulation →
 Flight Logging → Post-Flight Performance Analysis**
 
-Together with the custom nonlinear 6-DOF simulation, this provides two
+Together with the custom Nonlinear 6-DOF simulation, this provides two
 complementary validation layers:
 
 1. **Custom C++ flight-control simulation** for controller implementation,
@@ -469,43 +473,10 @@ complementary validation layers:
    validation.
    
 
-### PX4 Failsafe Validation
-
-A GPS sensor fault was injected during autonomous mission execution using the PX4
-failure injection interface.
-
-Command:
-
-failure gps off
-
-
-```markdown
-### Fault Injection
-
-![GPS failure injection](docs/images/px4_failsafe_gps_fault_injection.png)
-
-### Autonomous Recovery
-
-![RTL recovery](docs/images/px4_failsafe_rtl_recovery.png)
-```
-
-Observed system response:
-
-- Mission execution terminated
-- PX4 initiated Return-To-Launch (RTL)
-- Autonomous landing completed successfully
-- Vehicle disarmed safely after touchdown
-
-This validates the integration of the PX4 navigation and failsafe logic under a degraded sensor scenario. The experiment demonstrates safe autonomous recovery behavior rather than controller instability.
-
 ---
 
 
 
----
-
-
-```markdown
 ## Project Status
 
 Current implementation includes:
@@ -518,8 +489,8 @@ Current implementation includes:
 - ✔ Unit tests
 - ✔ PX4 SITL autonomous mission validation
 - ✔ uORB middleware inspection
-- ✔ ULog post-flight analysis
-- ✔ GPS failure injection (PX4 failure framework)
+- ✔ ULog Post-flight analysis
+
 
 Planned future work:
 
@@ -529,7 +500,7 @@ Planned future work:
 - Optical-flow navigation
 - Visual-Inertial Odometry (VIO)
 - SLAM-based autonomous navigation
-```
+
 
 ---
 
@@ -540,14 +511,13 @@ Planned future work:
 GNC / Embedded Systems Engineer  
 
 Focus areas:
- 
-- Embedded systems (C++, Python) 
-- GNC
-- Flight dynamics & control  
-- Sensor fusion & state estimation  
-- Autonomous systems  
-- UAV systems 
 
+- Embedded systems: C++ and Python
+- Guidance, navigation and control
+- Flight dynamics and control
+- Sensor fusion and state estimation
+- Autonomous systems
+- UAV systems
 
 GitHub: https://github.com/Vaiy108
 
